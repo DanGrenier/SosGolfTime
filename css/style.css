@@ -1,0 +1,27 @@
+
+
+input[type=text], input[type=time], input[type=url], input[type=email], input[type=password], input[type=tel] {
+  -webkit-appearance: none; -moz-appearance: none;
+  display: block;
+  margin: 0;
+  width: 60%; height: 50px;
+  line-height: 40px; font-size: 3em;
+  border: 1px solid #bbb;
+  text-align: center;
+  text-align-last: center;
+}
+select{
+   -webkit-appearance: none; -moz-appearance: none;
+  display: block;
+  margin: 0;
+  width: 25%; height: 50px;
+  line-height: 40px; font-size: 3em;
+  border: 1px solid #bbb;
+  text-align: center;
+  text-align-last: center;
+}
+
+.tooltip-inner{
+  max-width: none;
+  white-space: pre-line;
+}
