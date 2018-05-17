@@ -1,51 +1,53 @@
-// Code goes here
-
+// Global Variables
 var API_ENDPOINT = "https://4y5esvon09.execute-api.us-east-1.amazonaws.com/prod/test"
-var trou_depart;
-var trou;
+var start_hole;
+var current_hole;
 
 $(document).ready(function(){ 
 
+//Tooltip enabled
 $('[data-toggle="tooltip"]').tooltip();
 
 
-
-//Quand on clique calculer
+//When the Calc Buton is Clicked
 $("#calc").click(function(){
+  //Clear the sections and buttons
   $("#btn_details").text("Show Details");
-  $("#tableau tbody").empty();
-  $("#resultats").empty();
+  $("#result_table tbody").empty();
+  $("#results").empty();
   $('#details').hide();
-  $("#bouton").hide();
+  $("#btn").hide();
 
 
+  //Get starting hole
+  start_hole = $("#starting_hole").val();
 
-  //On obtient le trou de depart
-  trou_depart = $("#trou_depart").val();
+  //Get current hole
+  current_hole = $("#holes").val();
 
-  //On obtient quel trou l'usager a choisi
-  trou = $("#trous").val();
-
-  //On obtient leur temps de depart
+  //Get starting time
   var timestring = $("#timepicker").val();
 
+  //Compute current time
   var currentDate = moment().tz("America/New_York");
   currentDate.year(2018);
   currentDate.month(0);
   currentDate.date(1);
 
-  //On le converti en heure avec la bonne timezone
+  //Convert times as the same timezone for calculation purposes
   var started_at = moment.tz('2018-01-01 '+timestring, "America/New_York");
 
+  //Call the AWS API Gateway that relays the information to the AWS Lambda function
+  //that calculates your playing time and returns the proper information
   $.ajax({
     url: API_ENDPOINT,
     type: 'GET',
     data:{
       lang: "EN",
-      heure_depart: started_at.format(),
-      heure_courante: currentDate.format(),
-      trou_depart: trou_depart,
-      trou_actuel: trou
+      start_time: started_at.format(),
+      current_time: currentDate.format(),
+      start_hole: start_hole,
+      current_hole: current_hole
       },
       success: function (response) {
         displayResults(response);
@@ -59,46 +61,46 @@ $("#calc").click(function(){
 
 });
 
+//Function that will handle the display of result from the API call
 function displayResults(response)
 {
-  //Ici on va populer le detail
-  var laclass;
-  var letrou;
-  var parcoursFinal = response.rtn_parcour_final;
+  //grab the items from the response
+  var the_class;
+  var the_hole;
+  var finalOrder = response.rtn_final_order
   var targetTimes = response.rtn_target_times;
 
-  var realTrou = 0;
-  if (trou_depart > trou)
-    realTrou = 18 - trou_depart + trou +1;
+  //Compute the "real" hole (of the array) based on where the player started
+  var realHole = 0;
+  if (start_hole > current_hole)
+    realHole = 18 - start_hole + current_hole +1;
   else
-    realTrou = trou - trou_depart + 1;
+    realHole = current_hole - start_hole + 1;
 
-  $("#resultats").html(response.rtn_text);
+  //Display the proper text (Ahead, Late, On Time) from API reponse
+  $("#results").html(response.rtn_text);
 
-
+  //Populate the table that shows the end time at every hole
   for(var j=0;j<=18;j++){
     if (j === 0)
-      letrou = "Started";
+      the_hole = "Started";
     else
-      letrou = parcoursFinal[j];
+      the_hole = finalOrder[j];
     
-    var lheure = moment(targetTimes[j]).format("HH:mm");
-    if (realTrou == j){
-      laclass = "bg-success";
-      }
+    var the_time = moment(targetTimes[j]).format("HH:mm");
+    if (realHole == j)
+      the_class = "bg-success";
     else
-    {
-      laclass = "";
-    }
-    var markup = "<tr><td align='center' class ='"+laclass+"'>"+letrou+"</td><td align='center' class ='"+laclass+"'>"+lheure+"</td></tr>";
-    $("#tableau tbody").append(markup);
+      the_class = "";
+    
+    var markup = "<tr><td align='center' class ='"+the_class+"'>"+the_hole+"</td><td align='center' class ='"+the_class+"'>"+the_time+"</td></tr>";
+    $("#result_table tbody").append(markup);
   }
 
-
-  $("#bouton").show();
-
+  $("#btn").show();
 }
 
+//If the show detail is clicked, we show or hide details
 $("#btn_details").click(function(){
   if($(this).text() == "Hide Details")
   {
